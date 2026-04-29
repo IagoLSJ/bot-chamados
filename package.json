@@ -3,13 +3,30 @@
   "version": "1.0.0",
   "main": "api/webhook.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc",
+    "start": "node dist/api/webhook.js",
+    "dev": "ts-node dev.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
+    "dotenv": "^17.4.2",
     "node-telegram-bot-api": "^0.67.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/IagoLSJ/bot-chamados.git"
+  },
+  "bugs": {
+    "url": "https://github.com/IagoLSJ/bot-chamados/issues"
+  },
+  "homepage": "https://github.com/IagoLSJ/bot-chamados#readme",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "@types/node-telegram-bot-api": "^0.64.14",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
   }
 }
