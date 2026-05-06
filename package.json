@@ -4,7 +4,7 @@
   "main": "api/webhook.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/api/webhook.js",
+    "start": "node dist/render.js",
     "dev": "ts-node dev.ts"
   },
   "keywords": [],

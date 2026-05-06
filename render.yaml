@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: bot-telegram
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: TELEGRAM_TOKEN
+        sync: false
