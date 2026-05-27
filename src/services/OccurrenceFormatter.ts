@@ -1,4 +1,4 @@
-import { Occurrence } from '../mock/DATA';
+import { Occurrence } from '../dto/occurrence';
 
 export function formatOccurrence(occurrence: Occurrence): string {
   return [

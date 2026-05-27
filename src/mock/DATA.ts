@@ -1,15 +1,10 @@
-import { CreateOccurrenceDTO } from '../dto/create-occurrence';
-
-export interface Occurrence extends CreateOccurrenceDTO {
-  id: number;
-  status?: 'Pendente' | 'Resolvida';
-}
+import { Occurrence } from '../dto/occurrence';
 
 export const occurrences: Occurrence[] = [
   {
     id: 1,
     csi: '123456',
-    municipio: 'Ico',
+    municipio: 'Icó',
     tipoRede: 'BT',
     referenciaLocal: 'Rua A, 123',
     equipeNecessaria: 3,
@@ -19,7 +14,7 @@ export const occurrences: Occurrence[] = [
   {
     id: 2,
     csi: '789012',
-    municipio: 'Ico',
+    municipio: 'Icó',
     tipoRede: 'MT',
     referenciaLocal: 'Rua B, 456',
     equipeNecessaria: 2,
@@ -29,7 +24,7 @@ export const occurrences: Occurrence[] = [
   {
     id: 3,
     csi: '345678',
-    municipio: 'Ico',
+    municipio: 'Icó',
     tipoRede: 'BT',
     referenciaLocal: 'Rua C, 789',
     equipeNecessaria: 1,
@@ -38,7 +33,7 @@ export const occurrences: Occurrence[] = [
   {
     id: 4,
     csi: '901234',
-    municipio: 'Ico',
+    municipio: 'Icó',
     tipoRede: 'MT',
     referenciaLocal: 'Rua D, 101',
     equipeNecessaria: 0,

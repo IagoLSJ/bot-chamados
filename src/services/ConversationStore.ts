@@ -24,6 +24,18 @@ export type ConversationSession =
   | {
       flow: 'find';
       step: 'id';
+    }
+  | {
+      flow: 'list';
+      step: 'municipio';
+    }
+  | {
+      flow: 'report';
+      step: 'municipio';
+    }
+  | {
+      flow: 'exportReport';
+      step: 'municipio';
     };
 
 const sessions = new Map<number, ConversationSession>();

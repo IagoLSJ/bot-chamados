@@ -1,9 +1,7 @@
+import 'dotenv/config';
 import http from 'node:http';
 import TelegramBot from 'node-telegram-bot-api';
-import dotenv from 'dotenv';
 import { setupBot } from './src/bot';
-
-dotenv.config();
 
 const token = process.env.TELEGRAM_TOKEN;
 const port = Number(process.env.PORT || 3000);

@@ -1,4 +1,4 @@
-import { Occurrence } from '../mock/DATA';
+import { Occurrence } from '../dto/occurrence';
 import { OccurrenceStore } from './OccurrenceStore';
 
 export type CountMap = Record<string, number>;
@@ -21,10 +21,10 @@ function countBy(occurrences: Occurrence[], getKey: (occurrence: Occurrence) => 
   }, {});
 }
 
-export function buildOccurrenceReportData(): OccurrenceReportData {
-  const allOccurrences = OccurrenceStore.listAll();
-  const pendingOccurrences = OccurrenceStore.listPending();
-  const resolvedOccurrences = OccurrenceStore.listResolved();
+export async function buildOccurrenceReportData(municipio?: string): Promise<OccurrenceReportData> {
+  const allOccurrences = municipio ? await OccurrenceStore.findByMunicipio(municipio) : await OccurrenceStore.listAll();
+  const pendingOccurrences = allOccurrences.filter((occurrence) => occurrence.status !== 'Resolvida');
+  const resolvedOccurrences = allOccurrences.filter((occurrence) => occurrence.status === 'Resolvida');
 
   return {
     allOccurrences,

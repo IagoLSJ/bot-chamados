@@ -1,5 +1,11 @@
 import { Strategy } from './../strategies/Strategy';
 import TelegramBot from 'node-telegram-bot-api';
+import { ConversationStore } from './ConversationStore';
+import {
+  getMunicipalityKeyboard,
+  isValidMunicipalityFilter,
+  normalizeMunicipalityFilter,
+} from './Municipalities';
 import { CountMap, buildOccurrenceReportData } from './OccurrenceReportData';
 
 function escapeHtml(value: string | number): string {
@@ -33,8 +39,35 @@ function renderBars(data: CountMap): string {
 }
 
 export class ExportReportHtml implements Strategy {
-  execute(bot: TelegramBot, msg: TelegramBot.Message) {
-    const data = buildOccurrenceReportData();
+  async execute(bot: TelegramBot, msg: TelegramBot.Message): Promise<void> {
+    const chatId = msg.chat.id;
+    const text = (msg.text || '').trim();
+    const session = ConversationStore.get(chatId);
+
+    if (text === 'Cancelar') {
+      ConversationStore.clear(chatId);
+      await bot.sendMessage(chatId, 'Exportacao cancelada.', { reply_markup: { remove_keyboard: true } });
+      return;
+    }
+
+    if (!session || session.flow !== 'exportReport') {
+      ConversationStore.set(chatId, { flow: 'exportReport', step: 'municipio' });
+      await bot.sendMessage(chatId, 'Escolha a cidade para exportar o relatorio:', {
+        reply_markup: { keyboard: getMunicipalityKeyboard(true), resize_keyboard: true },
+      });
+      return;
+    }
+
+    if (!isValidMunicipalityFilter(text)) {
+      await bot.sendMessage(chatId, 'Escolha uma cidade valida.', {
+        reply_markup: { keyboard: getMunicipalityKeyboard(true), resize_keyboard: true },
+      });
+      return;
+    }
+
+    ConversationStore.clear(chatId);
+    const municipio = normalizeMunicipalityFilter(text);
+    const data = await buildOccurrenceReportData(municipio);
     const generatedAt = new Date().toLocaleString('pt-BR');
 
     const html = `<!doctype html>
@@ -188,7 +221,7 @@ export class ExportReportHtml implements Strategy {
 <body>
   <main>
     <header>
-      <h1>Relatorio de Ocorrencias</h1>
+      <h1>${escapeHtml(municipio ? `Relatorio de Ocorrencias - ${municipio}` : 'Relatorio de Ocorrencias')}</h1>
       <p>Gerado em ${escapeHtml(generatedAt)}</p>
     </header>
 
@@ -242,11 +275,11 @@ export class ExportReportHtml implements Strategy {
 </body>
 </html>`;
 
-    bot.sendDocument(
-      msg.chat.id,
+    await bot.sendDocument(
+      chatId,
       Buffer.from(html, 'utf-8'),
       {
-        caption: 'Relatorio com graficos gerado em HTML.',
+        caption: municipio ? `Relatorio com graficos gerado em HTML para ${municipio}.` : 'Relatorio com graficos gerado em HTML.',
         reply_markup: { remove_keyboard: true },
       },
       {

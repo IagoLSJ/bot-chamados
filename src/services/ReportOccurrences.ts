@@ -1,5 +1,11 @@
 import { Strategy } from './../strategies/Strategy';
 import TelegramBot from 'node-telegram-bot-api';
+import { ConversationStore } from './ConversationStore';
+import {
+  getMunicipalityKeyboard,
+  isValidMunicipalityFilter,
+  normalizeMunicipalityFilter,
+} from './Municipalities';
 import { CountMap, buildOccurrenceReportData } from './OccurrenceReportData';
 
 function formatCountMap(title: string, data: CountMap): string {
@@ -8,11 +14,38 @@ function formatCountMap(title: string, data: CountMap): string {
 }
 
 export class ReportOccurrences implements Strategy {
-  execute(bot: TelegramBot, msg: TelegramBot.Message) {
-    const data = buildOccurrenceReportData();
+  async execute(bot: TelegramBot, msg: TelegramBot.Message): Promise<void> {
+    const chatId = msg.chat.id;
+    const text = (msg.text || '').trim();
+    const session = ConversationStore.get(chatId);
+
+    if (text === 'Cancelar') {
+      ConversationStore.clear(chatId);
+      await bot.sendMessage(chatId, 'Relatorio cancelado.', { reply_markup: { remove_keyboard: true } });
+      return;
+    }
+
+    if (!session || session.flow !== 'report') {
+      ConversationStore.set(chatId, { flow: 'report', step: 'municipio' });
+      await bot.sendMessage(chatId, 'Escolha a cidade para gerar o relatorio:', {
+        reply_markup: { keyboard: getMunicipalityKeyboard(true), resize_keyboard: true },
+      });
+      return;
+    }
+
+    if (!isValidMunicipalityFilter(text)) {
+      await bot.sendMessage(chatId, 'Escolha uma cidade valida.', {
+        reply_markup: { keyboard: getMunicipalityKeyboard(true), resize_keyboard: true },
+      });
+      return;
+    }
+
+    ConversationStore.clear(chatId);
+    const municipio = normalizeMunicipalityFilter(text);
+    const data = await buildOccurrenceReportData(municipio);
 
     const report = [
-      'Relatorio geral de ocorrencias',
+      municipio ? `Relatorio de ocorrencias - ${municipio}` : 'Relatorio geral de ocorrencias',
       '',
       `Total de ocorrencias: ${data.allOccurrences.length}`,
       `Pendentes: ${data.pendingOccurrences.length}`,
@@ -26,6 +59,6 @@ export class ReportOccurrences implements Strategy {
       formatCountMap('Por municipio:', data.byCity),
     ].join('\n');
 
-    bot.sendMessage(msg.chat.id, report, { reply_markup: { remove_keyboard: true } });
+    await bot.sendMessage(chatId, report, { reply_markup: { remove_keyboard: true } });
   }
 }

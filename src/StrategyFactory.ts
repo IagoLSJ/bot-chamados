@@ -27,6 +27,18 @@ export class StrategyFactory {
       if (session?.flow === 'find') {
         return new FindOccurrence();
       }
+
+      if (session?.flow === 'list') {
+        return new ListOccurrences();
+      }
+
+      if (session?.flow === 'report') {
+        return new ReportOccurrences();
+      }
+
+      if (session?.flow === 'exportReport') {
+        return new ExportReportHtml();
+      }
     }
 
     switch (text) {

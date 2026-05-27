@@ -2,8 +2,8 @@ import { Strategy } from './Strategy';
 import TelegramBot from 'node-telegram-bot-api';
 
 export class MenuStrategy implements Strategy {
-  execute(bot: TelegramBot, msg: TelegramBot.Message) {
-    bot.sendMessage(msg.chat.id, 'Escolha uma opcao:', {
+  async execute(bot: TelegramBot, msg: TelegramBot.Message): Promise<void> {
+    await bot.sendMessage(msg.chat.id, 'Escolha uma opcao:', {
       reply_markup: {
         keyboard: [
           [{ text: 'Cadastrar Ocorrencia' }],
