@@ -11,68 +11,40 @@ import { ReportOccurrences } from './services/ReportOccurrences';
 import { ExportReportHtml } from './services/ExportReportHtml';
 import { ConversationStore } from './services/ConversationStore';
 
+type StrategyConstructor = new () => Strategy;
+
+const strategyMap: Record<string, StrategyConstructor> = {
+  create:                         CreateOccurrence,
+  update:                         UpdateOccurrence,
+  find:                           FindOccurrence,
+  list:                           ListOccurrences,
+  report:                         ReportOccurrences,
+  exportReport:                   ExportReportHtml,
+  'Cadastrar Ocorrencia':         CreateOccurrence,
+  'Alterar Ocorrencia':           UpdateOccurrence,
+  'Buscar Ocorrencia por ID':     FindOccurrence,
+  'Listar Ocorrencias Pendentes': ListOccurrences,
+  'Relatorio Geral':              ReportOccurrences,
+  'Exportar Relatorio com Graficos': ExportReportHtml,
+  'Ajuda':                        HelpStrategy,
+};
+
 export class StrategyFactory {
-  static getStrategy(text?: string, chatId?: number): Strategy | null {
-    if (chatId && text !== '/start' && text !== '/menu') {
+  static getStrategy(text?: string, chatId?: number): Strategy {
+    if (text === '/start' || text === '/menu') {
+      if (chatId) ConversationStore.clear(chatId);
+      return text === '/start' ? new StartStrategy() : new MenuStrategy();
+    }
+
+    if (chatId) {
       const session = ConversationStore.get(chatId);
-
-      if (session?.flow === 'create') {
-        return new CreateOccurrence();
-      }
-
-      if (session?.flow === 'update') {
-        return new UpdateOccurrence();
-      }
-
-      if (session?.flow === 'find') {
-        return new FindOccurrence();
-      }
-
-      if (session?.flow === 'list') {
-        return new ListOccurrences();
-      }
-
-      if (session?.flow === 'report') {
-        return new ReportOccurrences();
-      }
-
-      if (session?.flow === 'exportReport') {
-        return new ExportReportHtml();
+      if (session?.flow) {
+        const SessionStrategy = strategyMap[session.flow];
+        if (SessionStrategy) return new SessionStrategy();
       }
     }
 
-    switch (text) {
-      case '/start':
-        if (chatId) ConversationStore.clear(chatId);
-        return new StartStrategy();
-
-      case '/menu':
-        if (chatId) ConversationStore.clear(chatId);
-        return new MenuStrategy();
-
-      case 'Ajuda':
-        return new HelpStrategy();
-
-      case 'Cadastrar Ocorrencia':
-        return new CreateOccurrence();
-
-      case 'Alterar Ocorrencia':
-        return new UpdateOccurrence();
-
-      case 'Buscar Ocorrencia por ID':
-        return new FindOccurrence();
-
-      case 'Listar Ocorrencias Pendentes':
-        return new ListOccurrences();
-
-      case 'Relatorio Geral':
-        return new ReportOccurrences();
-
-      case 'Exportar Relatorio com Graficos':
-        return new ExportReportHtml();
-
-      default:
-        return new ExceptionStrategy();
-    }
+    const TextStrategy = strategyMap[text ?? ''];
+    return TextStrategy ? new TextStrategy() : new ExceptionStrategy();
   }
 }
